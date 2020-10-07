@@ -1,0 +1,26 @@
+language: python
+os: linux
+dist: xenial
+if: tag IS present
+cache: pip
+env:
+  global:
+    secure: STcUCm9gddsXZVAPXJj53V2+a91elaiskoWRQXmuPXefWT2Zd5O3kM5SxDfcdbBCUi9UbcwnFPP6MnGZE5iO61A6qIUlmVJX3WuZdzSHqJ7er0pfEu6TI/Av8YuGi4m97RAq7t50a/iQIUVH+chLTh+iYGpVawSSZzIAqaLPBz9JFP/GSP1z1ocAgeiMkvLO7Izp1U8dWzAPnUPiuDbzYkHooKxOS0F6TTsAFnCHf5pfg+cEgKPCnw4O3XG2G8gV5xRLXexZwazRI2j/JX6jK6wNcjyvKZCN68Gy/+2MrQoYZmUWjPKVh7jOJ2v7Diw8/+DjOOAER4EpDwB8/45vTHjNOaRyzVcczBMMqXAYvXkUn1Dd8Dc7pYHDkm8d2enfdmkYmnMYVZb75Yc5KJ1RN6svU3LnkA2KpVN6gpIT9Lc8VF6CNCOIxAyemgCRX3JjAyyJz7R7ofDhqjVz5asxauB7cFja+HVRR2A06Wq92ie/EjlZ70JUdAHEywG1EA3tPd/eIRj2I/VQzrvOD+OLTY/eSNb6WOYmdKq6pbphMtR+jWdRgVa8RImfOfT0WGBh3Ml1MSnjHlQ53ccL39WobdU5vbak8KL62Vzdy/uMPrQAuJTBE/dvAFyJJicvmICrTIjmjlg1kTR5le9TMsRYwJ/hfiIbJikj/D0x3Y48Rmg=
+install:
+- pip install -r requirements.txt
+script:
+- git clean -f -d -x
+after_success:
+- eval $(ssh-agent -s)
+- openssl aes-256-cbc -K $encrypted_b7705d6fe895_key -iv $encrypted_b7705d6fe895_iv -in o11y-workshop-deploy-key.enc -out o11y-workshop-deploy-key -d
+- chmod 600 o11y-workshop-deploy-key
+- ssh-add ./o11y-workshop-deploy-key
+- "./.ci/release.sh  || travis_terminate 1"
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: "./.ci/deploy.sh"
+  on:
+    repo: signalfx/observability-workshop
+    tags: true
+
